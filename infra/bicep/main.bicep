@@ -4,7 +4,7 @@
 // This is the main Bicep template that orchestrates the deployment of all
 // infrastructure components for the retail store three-tier application:
 //   - Presentation Tier: React frontend (running in AKS)
-//   - Application Tier: .NET backend API (running in AKS)
+//   - Logic Tier: .NET API (business logic, running in AKS)
 //   - Data Tier: Azure SQL Database (separate managed service)
 //
 // Infrastructure Components:
@@ -12,13 +12,14 @@
 //   ✓ Azure Kubernetes Service (private cluster with auto-scaling)
 //   ✓ Azure Container Registry (private)
 //   ✓ Azure SQL Database (private)
+//   ✓ Application Gateway for Containers (Azure-native ingress)
 //   ✓ Log Analytics Workspace for monitoring
 //   ✓ Private endpoints for secure connectivity
 //
-// Cost Optimization:
-//   - Using Basic/Standard SKUs where possible
-//   - Auto-scaling for AKS (1-3 nodes)
-//   - Estimated monthly cost: $59-124
+// Azure-Native Approach:
+//   - Using Application Gateway for Containers (fully managed Azure ingress)
+//   - All infrastructure is Azure PaaS/managed services
+//   - Estimated monthly cost: $129-224
 // ============================================================================
 
 targetScope = 'resourceGroup'
@@ -50,8 +51,8 @@ param sqlAdminUsername string
 @secure()
 param sqlAdminPassword string
 
-@description('Enable Application Gateway for Containers (adds ~$70-100/month)')
-param enableAppGatewayForContainers bool = false
+@description('Enable Application Gateway for Containers (Azure-native ingress, adds ~$70-100/month)')
+param enableAppGatewayForContainers bool = true
 
 @description('Tags to apply to all resources')
 param tags object = {
@@ -171,20 +172,20 @@ module aks './modules/aks.bicep' = {
 }
 
 // ============================================================================
-// Module: Application Gateway for Containers (FUTURE USE - COMMENTED OUT)
+// Module: Application Gateway for Containers (Azure-Native Ingress)
 // ============================================================================
-// ⚠️  COST WARNING: Uncomment only when ready to spend additional $70-100/month
-//
-// module appGatewayForContainers './modules/appgw-containers.bicep' = if (enableAppGatewayForContainers) {
-//   name: 'appgw-deployment'
-//   params: {
-//     appGwName: appGwName
-//     location: location
-//     appGwSubnetId: network.outputs.appGwSubnetId
-//     aksClusterName: aks.outputs.aksClusterName
-//     tags: tags
-//   }
-// }
+// Azure's fully-managed ingress solution for AKS
+// Provides advanced routing, WAF capabilities, and native Azure integration
+module appGatewayForContainers './modules/appgw-containers.bicep' = if (enableAppGatewayForContainers) {
+  name: 'appgw-deployment'
+  params: {
+    appGwName: appGwName
+    location: location
+    appGwSubnetId: network.outputs.appGwSubnetId
+    aksClusterName: aks.outputs.aksClusterName
+    tags: tags
+  }
+}
 
 // ============================================================================
 // Outputs
@@ -240,6 +241,16 @@ output logAnalyticsWorkspaceId string = monitoring.outputs.workspaceId
 @description('The name of the Log Analytics Workspace')
 output logAnalyticsWorkspaceName string = monitoring.outputs.workspaceName
 
+// Application Gateway Outputs
+@description('The resource ID of the Application Gateway for Containers')
+output appGatewayId string = enableAppGatewayForContainers ? appGatewayForContainers.outputs.albId : ''
+
+@description('The name of the Application Gateway for Containers')
+output appGatewayName string = enableAppGatewayForContainers ? appGatewayForContainers.outputs.albName : ''
+
+@description('The managed identity client ID for ALB Controller')
+output appGatewayIdentityClientId string = enableAppGatewayForContainers ? appGatewayForContainers.outputs.albIdentityClientId : ''
+
 // ============================================================================
 // Next Steps (displayed as outputs)
 // ============================================================================
@@ -254,10 +265,14 @@ Next Steps:
 1. Connect to AKS:
    ${aksGetCredentialsCommand}
 
-2. Install NGINX Ingress Controller:
-   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-   helm repo update
-   helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+2. Install Application Gateway for Containers (ALB) Controller:
+   helm install alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+     --version 1.0.0 \
+     --set albController.namespace=azure-alb-system \
+     --namespace azure-alb-system \
+     --create-namespace
+
+   See docs/deployment-guide.md for detailed ALB configuration
 
 3. Create Kubernetes secret for SQL connection:
    kubectl create secret generic sql-connection-string \
@@ -266,9 +281,9 @@ Next Steps:
 4. Build and push your container images:
    ${acrLoginCommand}
    docker build -t ${acrLoginServer}/frontend:latest ./src/frontend
-   docker build -t ${acrLoginServer}/backend:latest ./src/backend
+   docker build -t ${acrLoginServer}/logic-tier:latest ./src/logic-tier
    docker push ${acrLoginServer}/frontend:latest
-   docker push ${acrLoginServer}/backend:latest
+   docker push ${acrLoginServer}/logic-tier:latest
 
 5. Deploy your applications to AKS (create deployments and services)
 

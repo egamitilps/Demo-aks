@@ -1,6 +1,6 @@
 # Retail Store - Azure Kubernetes Service Infrastructure
 
-A cost-optimized, production-ready infrastructure for a three-tier retail store application deployed on Azure Kubernetes Service (AKS) using Bicep as Infrastructure as Code.
+An Azure-native, production-ready infrastructure for a three-tier retail store application deployed on Azure Kubernetes Service (AKS) using Bicep as Infrastructure as Code.
 
 ## 📋 Table of Contents
 
@@ -20,13 +20,13 @@ A cost-optimized, production-ready infrastructure for a three-tier retail store 
 This project provides a complete infrastructure setup for a three-tier retail store application:
 
 - **Presentation Tier**: React frontend (containerized, running in AKS)
-- **Application Tier**: .NET backend API (containerized, running in AKS)
+- **Logic Tier**: .NET API with business logic (containerized, running in AKS)
 - **Data Tier**: Azure SQL Database (separate managed service with private endpoint)
 
 ### Key Features
 
+✅ **Azure-Native**: Uses Application Gateway for Containers for fully-managed Azure ingress
 ✅ **Private & Secure**: Private AKS cluster with private endpoints for ACR and SQL Database
-✅ **Cost-Optimized**: Designed to stay within $100/month budget using Basic/Standard SKUs
 ✅ **Auto-Scaling**: AKS node pool scales from 1-3 nodes based on demand
 ✅ **Production-Ready**: Infrastructure monitoring with Log Analytics and Container Insights
 ✅ **Fully Automated**: Complete CI/CD pipelines for infrastructure deployment
@@ -53,11 +53,11 @@ The infrastructure consists of the following Azure resources:
 │  │  │  │  │  AKS Private Cluster           │    │    │ │  │
 │  │  │  │  │  - System Node Pool (1-3 nodes)│    │    │ │  │
 │  │  │  │  │  - Auto-scaling enabled        │    │    │ │  │
-│  │  │  │  │  - NGINX Ingress Controller    │    │    │ │  │
+│  │  │  │  │  - App Gateway for Containers  │    │    │ │  │
 │  │  │  │  │                                │    │    │ │  │
 │  │  │  │  │  Pods:                         │    │    │ │  │
 │  │  │  │  │  ├─ Frontend (React)           │    │    │ │  │
-│  │  │  │  │  └─ Backend (.NET)             │    │    │ │  │
+│  │  │  │  │  └─ Logic Tier (.NET API)      │    │    │ │  │
 │  │  │  │  └────────────────────────────────┘    │    │ │  │
 │  │  │  └─────────────────────────────────────────┘    │ │  │
 │  │  │                                                  │ │  │
@@ -70,13 +70,13 @@ The infrastructure consists of the following Azure resources:
 │  │  │                                                  │ │  │
 │  │  │  ┌─────────────────────────────────────────┐    │ │  │
 │  │  │  │  App Gateway Subnet (10.0.2.0/24)      │    │ │  │
-│  │  │  │  (Reserved for future use)             │    │ │  │
+│  │  │  │  - Application Gateway for Containers  │    │ │  │
 │  │  │  └─────────────────────────────────────────┘    │ │  │
 │  │  └──────────────────────────────────────────────────┘ │  │
 │  │                                                        │  │
 │  │  ┌──────────────────────────────────────────────────┐ │  │
 │  │  │  Azure Container Registry (Private)              │ │  │
-│  │  │  - Stores frontend and backend images            │ │  │
+│  │  │  - Stores frontend and logic tier images         │ │  │
 │  │  └──────────────────────────────────────────────────┘ │  │
 │  │                                                        │  │
 │  │  ┌──────────────────────────────────────────────────┐ │  │
@@ -98,7 +98,7 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture docum
 
 ## 💰 Cost Estimation
 
-**Target Budget**: $100/month (out of $150 Azure credits)
+**Note**: This configuration uses Azure-native Application Gateway for Containers
 
 | Resource | SKU/Size | Estimated Monthly Cost |
 |----------|----------|------------------------|
@@ -106,17 +106,19 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture docum
 | AKS Node Pool | 1-3x Standard_B2s | $30-90 |
 | Azure SQL Database | Basic (2 GB) | ~$5 |
 | Azure Container Registry | Basic | ~$5 |
+| Application Gateway for Containers | Standard | ~$70-100 |
 | Virtual Network | Standard | $0 (basic usage) |
 | Private Endpoints | 2x endpoints | ~$14 |
 | Log Analytics | Pay-as-you-go | ~$5-10 |
-| **Total** | | **$59-124/month** ✅ |
+| **Total** | | **$129-224/month** |
 
-### Cost Optimization Tips
+### Azure-Native Benefits
 
-- Auto-scaling keeps nodes at minimum (1) during low usage
-- Using Basic/Standard SKUs instead of Premium
-- No Application Gateway for Containers (saves ~$70-100/month)
-- Using NGINX Ingress Controller (free) instead
+- Fully managed Azure ingress solution
+- Native integration with Azure services
+- Advanced routing and WAF capabilities
+- Auto-scaling keeps AKS nodes at minimum (1) during low usage
+- Using Basic/Standard SKUs for ACR and SQL Database
 
 ## 📦 Prerequisites
 
@@ -127,7 +129,7 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture docum
 - kubectl (for AKS management)
 - Helm 3.x (for installing charts)
 - Git
-- An Azure subscription with at least $100/month available
+- An Azure subscription with sufficient credits ($150-250/month recommended)
 
 ### For CI/CD
 
@@ -210,14 +212,14 @@ Demo-aks/
 │   │   │   ├── acr.bicep                # Container registry
 │   │   │   ├── sql.bicep                # SQL Database
 │   │   │   ├── monitoring.bicep         # Log Analytics
-│   │   │   └── appgw-containers.bicep   # App Gateway (future use)
+│   │   │   └── appgw-containers.bicep   # App Gateway for Containers
 │   │   └── parameters/
 │   │       └── dev.bicepparam           # Development parameters
 │   └── pipelines/
 │       └── azure-pipelines.yml          # Azure Pipelines workflow
 ├── src/
 │   ├── frontend/                        # React frontend (placeholder)
-│   └── backend/                         # .NET backend (placeholder)
+│   └── logic-tier/                      # .NET logic tier (placeholder)
 ├── .gitignore
 └── README.md
 ```
@@ -250,18 +252,21 @@ See [docs/deployment-guide.md](docs/deployment-guide.md) for detailed instructio
 
 ## 🎯 Post-Deployment
 
-### Install NGINX Ingress Controller
+### Install Application Gateway for Containers (ALB) Controller
 
 ```bash
-# Add Helm repository
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-
-# Install NGINX Ingress
-helm install nginx-ingress ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
+# Install ALB Controller via Helm
+helm install alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+  --version 1.0.0 \
+  --set albController.namespace=azure-alb-system \
+  --namespace azure-alb-system \
   --create-namespace
+
+# Verify installation
+kubectl get pods -n azure-alb-system
 ```
+
+See the [deployment guide](docs/deployment-guide.md) for complete ALB configuration including Gateway Class and Ingress resources.
 
 ### Create SQL Connection Secret
 
@@ -280,16 +285,16 @@ az acr login --name <acr-name>
 docker build -t <acr-name>.azurecr.io/frontend:latest ./src/frontend
 docker push <acr-name>.azurecr.io/frontend:latest
 
-# Build and push backend
-docker build -t <acr-name>.azurecr.io/backend:latest ./src/backend
-docker push <acr-name>.azurecr.io/backend:latest
+# Build and push logic tier
+docker build -t <acr-name>.azurecr.io/logic-tier:latest ./src/logic-tier
+docker push <acr-name>.azurecr.io/logic-tier:latest
 ```
 
 ## 📚 Documentation
 
 - [Architecture Documentation](docs/architecture.md) - Detailed architecture and design decisions
 - [Deployment Guide](docs/deployment-guide.md) - Step-by-step deployment instructions
-- [Application Gateway for Containers](infra/bicep/modules/appgw-containers.bicep) - Future upgrade path
+- [Application Gateway for Containers](infra/bicep/modules/appgw-containers.bicep) - Azure-native ingress module
 
 ## 🛠️ Technology Stack
 
@@ -301,12 +306,12 @@ docker push <acr-name>.azurecr.io/backend:latest
 - **Database**: Azure SQL Database
 - **Networking**: Azure Virtual Network with private endpoints
 - **Monitoring**: Azure Monitor, Log Analytics, Container Insights
-- **Ingress**: NGINX Ingress Controller
+- **Ingress**: Application Gateway for Containers (Azure-native)
 
 ### Application (Planned)
 
 - **Frontend**: React
-- **Backend**: .NET (ASP.NET Core)
+- **Logic Tier**: .NET (ASP.NET Core Web API)
 - **Database**: SQL Server
 
 ### CI/CD

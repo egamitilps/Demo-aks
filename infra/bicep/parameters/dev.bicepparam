@@ -38,9 +38,10 @@ param sqlAdminPassword = 'P@ssw0rd123!' // ⚠️  CHANGE THIS!
 // ============================================================================
 // Feature Flags
 // ============================================================================
-// Application Gateway for Containers is disabled by default to save cost
-// Set to true when ready to spend additional $70-100/month
-param enableAppGatewayForContainers = false
+// Application Gateway for Containers - Azure-native ingress solution
+// Enabled by default for fully Azure-managed infrastructure
+// Cost: Additional ~$70-100/month
+param enableAppGatewayForContainers = true
 
 // ============================================================================
 // Resource Tags

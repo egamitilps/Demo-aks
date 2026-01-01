@@ -1,6 +1,6 @@
-# Backend API - .NET Core
+# Logic Tier - .NET Core Web API
 
-This directory will contain the .NET Core Web API backend for the retail store.
+This directory will contain the .NET Core Web API logic tier (business logic layer) for the retail store.
 
 ## 📦 What Goes Here
 
@@ -22,7 +22,7 @@ This directory will contain the .NET Core Web API backend for the retail store.
 ## 📁 Recommended Structure
 
 ```
-backend/
+logic-tier/
 ├── Controllers/
 │   ├── ProductsController.cs
 │   ├── OrdersController.cs
@@ -95,21 +95,21 @@ ENTRYPOINT ["dotnet", "RetailStoreApi.dll"]
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: logic-tier-deployment
   namespace: default
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: backend
+      app: logic-tier
   template:
     metadata:
       labels:
-        app: backend
+        app: logic-tier
     spec:
       containers:
-      - name: backend
-        image: <acr-name>.azurecr.io/backend:latest
+      - name: logic-tier
+        image: <acr-name>.azurecr.io/logic-tier:latest
         ports:
         - containerPort: 80
         env:
@@ -143,11 +143,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: logic-tier-service
   namespace: default
 spec:
   selector:
-    app: backend
+    app: logic-tier
   ports:
   - port: 80
     targetPort: 80
@@ -275,7 +275,7 @@ dotnet --version  # .NET 8 SDK or higher
 
 ### Create New Project
 ```bash
-cd src/backend
+cd src/logic-tier
 
 # Create new Web API project
 dotnet new webapi -n RetailStoreApi
@@ -330,10 +330,10 @@ ACR_NAME=$(az deployment group show \
 az acr login --name $ACR_NAME
 
 # Build image
-docker build -t ${ACR_NAME}.azurecr.io/backend:latest .
+docker build -t ${ACR_NAME}.azurecr.io/logic-tier:latest .
 
 # Push to ACR
-docker push ${ACR_NAME}.azurecr.io/backend:latest
+docker push ${ACR_NAME}.azurecr.io/logic-tier:latest
 ```
 
 ### Deploy to AKS

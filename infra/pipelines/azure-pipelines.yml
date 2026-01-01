@@ -166,22 +166,21 @@ stages:
                   --name $AKS_NAME \
                   --overwrite-existing
 
-          # NOTE: NGINX Ingress installation is commented out
-          # Uncomment when ready to install ingress controller
+          # NOTE: Application Gateway for Containers is deployed via Bicep
+          # ALB Controller can be installed separately if needed
 
-          # - task: HelmDeploy@0
-          #   displayName: 'Install NGINX Ingress Controller'
+          # - task: AzureCLI@2
+          #   displayName: 'Install ALB Controller'
           #   inputs:
-          #     connectionType: 'Azure Resource Manager'
           #     azureSubscription: $(azureSubscription)
-          #     azureResourceGroup: $(resourceGroupName)
-          #     kubernetesCluster: $(aksClusterName)
-          #     command: 'install'
-          #     chartType: 'Name'
-          #     chartName: 'ingress-nginx/ingress-nginx'
-          #     releaseName: 'nginx-ingress'
-          #     namespace: 'ingress-nginx'
-          #     arguments: '--create-namespace'
+          #     scriptType: 'bash'
+          #     scriptLocation: 'inlineScript'
+          #     inlineScript: |
+          #       helm install alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+          #         --version 1.0.0 \
+          #         --set albController.namespace=azure-alb-system \
+          #         --namespace azure-alb-system \
+          #         --create-namespace
 
           - task: AzureCLI@2
             displayName: 'Deployment Summary'
