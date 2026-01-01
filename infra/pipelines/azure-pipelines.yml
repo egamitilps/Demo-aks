@@ -1,0 +1,198 @@
+# ============================================================================
+# Azure Pipelines - Deploy AKS Infrastructure
+# ============================================================================
+# This pipeline deploys the retail store infrastructure to Azure using Bicep
+#
+# Prerequisites:
+#   1. Create an Azure Service Connection in Azure DevOps
+#   2. Create a variable group named 'retail-dev-vars' with:
+#      - SQL_ADMIN_PASSWORD (mark as secret)
+#   3. Update the variables section below with your values
+# ============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infra/bicep/**
+      - infra/pipelines/**
+
+# Manual trigger
+pr: none
+
+variables:
+  # Update these values for your environment
+  azureSubscription: 'your-service-connection-name' # Update this!
+  resourceGroupName: 'rg-retail-dev'
+  location: 'southcentralus'
+  bicepFile: 'infra/bicep/main.bicep'
+  parametersFile: 'infra/bicep/parameters/dev.bicepparam'
+
+stages:
+  # ==========================================================================
+  # Stage 1: Validate
+  # ==========================================================================
+  - stage: Validate
+    displayName: 'Validate Bicep Templates'
+    jobs:
+      - job: ValidateBicep
+        displayName: 'Validate and Preview'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Validate Bicep file'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az bicep build --file $(bicepFile)
+                echo "✅ Bicep validation successful"
+
+          - task: AzureCLI@2
+            displayName: 'Run What-If deployment'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az deployment group what-if \
+                  --resource-group $(resourceGroupName) \
+                  --template-file $(bicepFile) \
+                  --parameters $(parametersFile) \
+                  --parameters sqlAdminPassword=$(SQL_ADMIN_PASSWORD)
+
+  # ==========================================================================
+  # Stage 2: Deploy
+  # ==========================================================================
+  - stage: Deploy
+    displayName: 'Deploy Infrastructure'
+    dependsOn: Validate
+    condition: succeeded()
+    jobs:
+      - deployment: DeployInfrastructure
+        displayName: 'Deploy to Azure'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'development'
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: 'Create Resource Group'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az group create \
+                        --name $(resourceGroupName) \
+                        --location $(location) \
+                        --tags Environment=Development Project=RetailStore ManagedBy=AzurePipelines
+
+                - task: AzureCLI@2
+                  displayName: 'Deploy Bicep template'
+                  name: DeployBicep
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az deployment group create \
+                        --resource-group $(resourceGroupName) \
+                        --template-file $(bicepFile) \
+                        --parameters $(parametersFile) \
+                        --parameters sqlAdminPassword=$(SQL_ADMIN_PASSWORD) \
+                        --output json > $(Build.ArtifactStagingDirectory)/deployment-output.json
+
+                      echo "✅ Deployment successful"
+
+                - task: PublishBuildArtifacts@1
+                  displayName: 'Publish deployment outputs'
+                  inputs:
+                    PathtoPublish: '$(Build.ArtifactStagingDirectory)/deployment-output.json'
+                    ArtifactName: 'deployment-outputs'
+                    publishLocation: 'Container'
+
+                - task: AzureCLI@2
+                  displayName: 'Display deployment summary'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      cat $(Build.ArtifactStagingDirectory)/deployment-output.json | jq '.properties.outputs'
+
+  # ==========================================================================
+  # Stage 3: Post-Deployment (Optional)
+  # ==========================================================================
+  - stage: PostDeploy
+    displayName: 'Post-Deployment Configuration'
+    dependsOn: Deploy
+    condition: succeeded()
+    jobs:
+      - job: ConfigureAKS
+        displayName: 'Configure AKS and Install Tools'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download deployment outputs'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'deployment-outputs'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureCLI@2
+            displayName: 'Get AKS credentials'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                AKS_NAME=$(cat $(System.ArtifactsDirectory)/deployment-outputs/deployment-output.json | jq -r '.properties.outputs.aksClusterName.value')
+                az aks get-credentials \
+                  --resource-group $(resourceGroupName) \
+                  --name $AKS_NAME \
+                  --overwrite-existing
+
+          # NOTE: NGINX Ingress installation is commented out
+          # Uncomment when ready to install ingress controller
+
+          # - task: HelmDeploy@0
+          #   displayName: 'Install NGINX Ingress Controller'
+          #   inputs:
+          #     connectionType: 'Azure Resource Manager'
+          #     azureSubscription: $(azureSubscription)
+          #     azureResourceGroup: $(resourceGroupName)
+          #     kubernetesCluster: $(aksClusterName)
+          #     command: 'install'
+          #     chartType: 'Name'
+          #     chartName: 'ingress-nginx/ingress-nginx'
+          #     releaseName: 'nginx-ingress'
+          #     namespace: 'ingress-nginx'
+          #     arguments: '--create-namespace'
+
+          - task: AzureCLI@2
+            displayName: 'Deployment Summary'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "================================================="
+                echo "🎉 Deployment Complete!"
+                echo "================================================="
+                echo ""
+                echo "For next steps, see: docs/deployment-guide.md"
+                echo "================================================="

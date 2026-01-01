@@ -1,0 +1,214 @@
+# ============================================================================
+# .gitignore for Azure AKS Infrastructure Project
+# ============================================================================
+
+# ============================================================================
+# Azure & Bicep
+# ============================================================================
+*.bicepparam.local
+deployment-output.json
+outputs.json
+*.deployment.json
+
+# Azure CLI
+.azure/
+
+# ============================================================================
+# Terraform (if used in future)
+# ============================================================================
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# ============================================================================
+# Secrets & Credentials
+# ============================================================================
+# IMPORTANT: Never commit secrets, passwords, or credentials
+*.env
+.env.*
+secrets/
+*.key
+*.pem
+*.pfx
+*.p12
+*.cert
+*.crt
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# Azure credentials
+azure-credentials.json
+service-principal.json
+
+# Kubernetes secrets (local copies)
+*-secret.yaml
+secrets.yaml
+
+# ============================================================================
+# Logs & Temporary Files
+# ============================================================================
+*.log
+logs/
+*.tmp
+*.temp
+temp/
+
+# ============================================================================
+# IDE & Editor Files
+# ============================================================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# JetBrains IDEs (IntelliJ, Rider, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================================================
+# Operating System Files
+# ============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ============================================================================
+# Docker
+# ============================================================================
+docker-compose.override.yml
+.dockerignore.local
+
+# ============================================================================
+# Node.js (for frontend)
+# ============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.parcel-cache/
+dist/
+build/
+*.tgz
+
+# ============================================================================
+# .NET (for backend)
+# ============================================================================
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+*.cache
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# ============================================================================
+# Test Results
+# ============================================================================
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+htmlcov/
+.tox/
+.pytest_cache/
+.coverage
+
+# ============================================================================
+# Build Artifacts
+# ============================================================================
+dist/
+build/
+*.zip
+*.tar.gz
+*.rar
+
+# ============================================================================
+# Backup Files
+# ============================================================================
+*.bak
+*.backup
+*.old
+*.orig
+
+# ============================================================================
+# Miscellaneous
+# ============================================================================
+*.cache
+.cache/
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================================================
+# Project-Specific (Keep These)
+# ============================================================================
+# We want to keep these files in source control:
+# - README.md files
+# - Documentation in docs/
+# - Bicep templates and modules
+# - Parameter files (without secrets)
+# - Pipeline YAML files
+# - Sample Kubernetes manifests
+
+# ============================================================================
+# Local Development Override Files
+# ============================================================================
+# Files for local development that override defaults
+*.local
+local/
+.local/
+
+# ============================================================================
+# CI/CD Artifacts
+# ============================================================================
+.pipeline/
+.github/workflows/*.log
+azure-pipelines-output/
