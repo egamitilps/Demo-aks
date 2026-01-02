@@ -71,13 +71,13 @@
 │  │  │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │    │  │   │
 │  │  │  │                                                                    │    │  │   │
 │  │  │  │  ┌─────────────────────────────────────────────────────────────┐  │    │  │   │
-│  │  │  │  │  NGINX INGRESS CONTROLLER                                   │  │    │  │   │
-│  │  │  │  │  Namespace: ingress-nginx                                   │  │    │  │   │
-│  │  │  │  │  Service: LoadBalancer (Internal) - 10.0.1.x                │  │    │  │   │
+│  │  │  │  │  APPLICATION GATEWAY FOR CONTAINERS                        │  │    │  │   │
+│  │  │  │  │  Namespace: azure-alb-system                                │  │    │  │   │
+│  │  │  │  │  Azure-managed ingress solution                             │  │    │  │   │
 │  │  │  │  │  ┌──────────────────────────────────────────────────────┐   │  │    │  │   │
 │  │  │  │  │  │  Routing Rules:                                      │   │  │    │  │   │
 │  │  │  │  │  │  ├─ /          → frontend-service:80                 │   │  │    │  │   │
-│  │  │  │  │  │  └─ /api/*     → backend-service:80                  │   │  │    │  │   │
+│  │  │  │  │  │  └─ /api/*     → logic-tier-service:80               │   │  │    │  │   │
 │  │  │  │  │  └──────────────────────────────────────────────────────┘   │  │    │  │   │
 │  │  │  │  └─────────────────────────────────────────────────────────────┘  │    │  │   │
 │  │  │  │                              │                                     │    │  │   │
@@ -154,12 +154,12 @@
 │                 │                                               │                       │
 │  ┌──────────────┼───────────────────────────────────────────────┼───────────────────┐   │
 │  │              │                                               │                   │   │
-│  │  SUBNET 2: appgw-subnet (10.0.2.0/24) - RESERVED FOR FUTURE USE                │   │
+│  │  SUBNET 2: appgw-subnet (10.0.2.0/24) - Application Gateway for Containers     │   │
 │  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │   │
 │  │              │                                               │                   │   │
 │  │  ┌─────────────────────────────────────────────────────────────────────────┐   │   │
-│  │  │  Application Gateway for Containers (Not Deployed)                      │   │   │
-│  │  │  Cost: ~$70-100/month - Reserved for production upgrade                 │   │   │
+│  │  │  Application Gateway for Containers - DEPLOYED                          │   │   │
+│  │  │  Azure-native managed ingress | Cost: ~$70-100/month                   │   │   │
 │  │  └─────────────────────────────────────────────────────────────────────────┘   │   │
 │  │              │                                               │                   │   │
 │  └──────────────┼───────────────────────────────────────────────┼───────────────────┘   │
@@ -220,27 +220,14 @@
        │
        │ HTTPS Request
        ▼
-┌──────────────────────────────────┐
-│  (Future) Application Gateway    │
-│  for Containers                  │
-│  - WAF                           │
-│  - TLS Termination               │
-│  - Advanced Routing              │
-└────────────┬─────────────────────┘
-             │
-             │ Not Currently Deployed
-             │
-       ┌─────▼──────┐
-       │   VNet     │
-       └─────┬──────┘
-             │
-             ▼
-┌────────────────────────────────────┐
-│  NGINX Ingress Controller          │
-│  (Internal Load Balancer)          │
-│  - Routing based on path           │
-│  - TLS termination                 │
-└────────┬──────────────┬────────────┘
+┌────────────────────────────────────────┐
+│  Application Gateway for Containers    │
+│  (Azure-Native Managed Ingress)        │
+│  - WAF capabilities                    │
+│  - TLS Termination                     │
+│  - Advanced Routing                    │
+│  - Auto-scaling                        │
+└────────┬──────────────┬────────────────┘
          │              │
          │              │
     Path: /        Path: /api/*
@@ -369,17 +356,16 @@ Layer 5: Data Protection
 │ Virtual Network                                        $0 (Free)     │
 └─────────────────────────────────────────────────────────────────────┘
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TOTAL ESTIMATED COST: $59 - $124 per month ✅
-Within $100 budget when averaging 2 nodes
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Optional (NOT DEPLOYED):
 ┌─────────────────────────────────────────────────────────────────────┐
-│ Application Gateway for Containers (Future)       ~$70 - $100 ⚠️    │
+│ Application Gateway for Containers                ~$70 - $100       │
 │ ████████████████████████████████████████████████████████████████████ │
-│ Would exceed budget - reserved for production upgrade               │
+│ Azure-native managed ingress solution                               │
 └─────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL ESTIMATED COST: $129 - $224 per month
+Azure-native infrastructure with fully-managed ingress
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ## Auto-Scaling Behavior

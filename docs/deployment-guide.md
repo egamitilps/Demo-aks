@@ -373,28 +373,29 @@ kubectl get nodes
 kubectl get pods --all-namespaces
 ```
 
-### 2. Install NGINX Ingress Controller
+### 2. Install Application Gateway for Containers (ALB) Controller
 
 ```bash
-# Add Helm repository
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
+# Install ALB Controller via Helm
+helm install alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+  --version 1.0.0 \
+  --set albController.namespace=azure-alb-system \
+  --namespace azure-alb-system \
+  --create-namespace
 
-# Install NGINX Ingress with internal load balancer
-helm install nginx-ingress ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"="true" \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal-subnet"="aks-subnet"
-
-# Wait for ingress controller to be ready
-kubectl wait --namespace ingress-nginx \
+# Wait for ALB controller to be ready
+kubectl wait --namespace azure-alb-system \
   --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
+  --selector=app.kubernetes.io/name=alb-controller \
   --timeout=120s
 
-# Get ingress controller service details
-kubectl get service -n ingress-nginx
+# Verify installation
+kubectl get pods -n azure-alb-system
+kubectl get gatewayclass
+
+# Note: The Application Gateway for Containers infrastructure
+# was already deployed via Bicep. This step installs the controller
+# that manages the ingress resources within Kubernetes.
 ```
 
 ### 3. Create Kubernetes Secrets for SQL Connection

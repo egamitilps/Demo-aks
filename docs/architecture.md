@@ -57,7 +57,7 @@ This document provides a comprehensive overview of the retail store application 
 │  │  │   │   │                      ▲                            │     │ │ │ │
 │  │  │   │   │                      │                            │     │ │ │ │
 │  │  │   │   │   ┌──────────────────┴───────────────────┐        │     │ │ │ │
-│  │  │   │   │   │  NGINX Ingress Controller            │        │     │ │ │ │
+│  │  │   │   │   │  App Gateway for Containers          │        │     │ │ │ │
 │  │  │   │   │   │  - Internal Load Balancer            │        │     │ │ │ │
 │  │  │   │   │   │  - TLS termination                   │        │     │ │ │ │
 │  │  │   │   │   │  - Routing rules                     │        │     │ │ │ │
@@ -157,7 +157,7 @@ This document provides a comprehensive overview of the retail store application 
 - Nginx web server serving static files
 - Deployed as Kubernetes Deployment with multiple replicas
 - Exposed via Kubernetes ClusterIP Service
-- Accessed through NGINX Ingress Controller
+- Accessed through Application Gateway for Containers
 
 **Responsibilities**:
 - User interface rendering
@@ -261,7 +261,7 @@ This document provides a comprehensive overview of the retail store application 
   3. Private Endpoints Subnet: 10.0.3.0/24
 
 **Features**:
-- Subnet delegation for Application Gateway (future use)
+- Subnet delegation for Application Gateway for Containers
 - Private endpoint network policies disabled
 - Integration with Azure CNI for AKS
 
@@ -285,10 +285,8 @@ This document provides a comprehensive overview of the retail store application 
 ```
 Internet
    │
-   ├─ (Optional) Future: Application Gateway for Containers
-   │
    ▼
-[NGINX Ingress Controller - Internal LB]
+[Application Gateway for Containers - Azure-Native Ingress]
    │
    ├──► Frontend Service (ClusterIP)
    │       └──► Frontend Pods
@@ -446,7 +444,7 @@ Internet
 2. **Basic SKUs**: ACR Basic, SQL Basic
 3. **Auto-Scaling**: Nodes scale down to 1 during low usage
 4. **B-series VMs**: Burstable VMs for variable workloads
-5. **NGINX Ingress**: Free alternative to Application Gateway
+5. **Application Gateway for Containers**: Azure-native managed ingress
 6. **Minimal Retention**: 30-day log retention
 
 ### Cost Monitoring
@@ -476,19 +474,20 @@ Internet
 
 **Decision**: Security takes priority for production-ready architecture
 
-### Why NGINX Ingress vs Application Gateway?
+### Why Application Gateway for Containers?
 
-**NGINX Pros**:
-- Free (runs as pods in AKS)
-- Widely adopted
-- Sufficient for dev/learning
-- Easy to configure
+**Benefits**:
+- Fully managed Azure service (no self-managed pods)
+- Native integration with Azure ecosystem
+- Advanced routing and WAF capabilities
+- Enterprise-grade security and compliance
+- Auto-scaling and high availability
 
-**App Gateway Cons**:
-- Costs $70-100/month
-- Overkill for dev environment
+**Trade-offs**:
+- Additional cost ($70-100/month)
+- More complex initial setup than simple ingress controllers
 
-**Decision**: Use NGINX for cost savings, reserve App Gateway for production
+**Decision**: Use Azure-native Application Gateway for Containers for production-ready, fully-managed infrastructure that aligns with Azure best practices
 
 ### Why Basic SQL Tier?
 

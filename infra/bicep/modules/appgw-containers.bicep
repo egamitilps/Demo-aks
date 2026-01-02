@@ -1,19 +1,26 @@
 // ============================================================================
-// Application Gateway for Containers Module (FUTURE USE)
+// Application Gateway for Containers Module - Azure-Native Ingress
 // ============================================================================
-// ⚠️  NOT DEPLOYED IN CURRENT PIPELINE - FOR FUTURE USE ONLY ⚠️
-//
 // This module creates Azure Application Gateway for Containers (ALB Controller)
-// which is the next-generation ingress solution for AKS.
+// which is Azure's fully-managed, next-generation ingress solution for AKS.
 //
-// COST WARNING: This resource costs approximately $70-100/month
-// Currently using NGINX Ingress Controller (free) to stay within budget
+// Features:
+// - Fully managed by Azure (no self-managed ingress pods required)
+// - Native integration with Azure services
+// - Advanced routing capabilities and WAF support
+// - Auto-scaling and high availability
 //
-// To use this in the future:
-// 1. Uncomment the module reference in main.bicep
-// 2. Update the deployment pipeline to include this module
-// 3. Ensure budget allows for additional $70-100/month cost
-// 4. Install the ALB Controller in your AKS cluster
+// Cost: Approximately $70-100/month
+//
+// Post-Deployment Steps:
+// After deploying this infrastructure, install the ALB Controller in AKS:
+//   helm install alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+//     --version 1.0.0 \
+//     --set albController.namespace=azure-alb-system \
+//     --namespace azure-alb-system \
+//     --create-namespace
+//
+// See docs/deployment-guide.md for complete configuration details
 // ============================================================================
 
 @description('The name of the Application Gateway for Containers')

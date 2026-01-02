@@ -48,7 +48,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' = {
           privateLinkServiceNetworkPolicies: 'Disabled'
         }
       }
-      // Subnet for Application Gateway for Containers (future use)
+      // Subnet for Application Gateway for Containers (Azure-native ingress)
       {
         name: 'appgw-subnet'
         properties: {
