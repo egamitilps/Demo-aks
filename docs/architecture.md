@@ -49,7 +49,7 @@ This document provides a comprehensive overview of the retail store application 
 │  │  │   │   │   │  Presentation Tier                   │        │     │ │ │ │
 │  │  │   │   │   │  ┌────────────────────────────────┐  │        │     │ │ │ │
 │  │  │   │   │   │  │  Frontend Pod (React)          │  │        │     │ │ │ │
-│  │  │   │   │   │  │  - Nginx web server            │  │        │     │ │ │ │
+│  │  │   │   │   │  │  - nginx (static file server)  │  │        │     │ │ │ │
 │  │  │   │   │   │  │  - Static assets               │  │        │     │ │ │ │
 │  │  │   │   │   │  │  - Service: ClusterIP          │  │        │     │ │ │ │
 │  │  │   │   │   │  └────────────────────────────────┘  │        │     │ │ │ │
@@ -154,10 +154,10 @@ This document provides a comprehensive overview of the retail store application 
 **Technology**: React Single Page Application
 
 **Hosting**: Containerized in AKS
-- Nginx web server serving static files
+- nginx web server serving static files (not NGINX Ingress Controller)
 - Deployed as Kubernetes Deployment with multiple replicas
 - Exposed via Kubernetes ClusterIP Service
-- Accessed through Application Gateway for Containers
+- Accessed through Application Gateway for Containers (Azure-native ingress)
 
 **Responsibilities**:
 - User interface rendering

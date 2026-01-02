@@ -63,7 +63,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Production stage
+# Production stage - nginx as static file web server
+# Note: This uses nginx to serve static files, NOT the NGINX Ingress Controller
+# Ingress routing is handled by Application Gateway for Containers (Azure-native)
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
