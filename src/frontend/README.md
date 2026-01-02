@@ -116,17 +116,17 @@ spec:
   type: ClusterIP
 ```
 
-## 🔌 Backend API Integration
+## 🔌 Logic Tier API Integration
 
-The frontend will call the backend API at:
-- **Development**: `http://backend-service/api`
+The frontend will call the logic tier API at:
+- **Development**: `http://logic-tier-service/api`
 - **Production**: `https://your-domain.com/api`
 
 Environment variables:
 ```bash
-VITE_API_URL=http://backend-service/api
+VITE_API_URL=http://logic-tier-service/api
 # or
-REACT_APP_API_URL=http://backend-service/api
+REACT_APP_API_URL=http://logic-tier-service/api
 ```
 
 ## 📋 Features to Implement

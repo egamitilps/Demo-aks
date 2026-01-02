@@ -93,8 +93,8 @@ This document provides a comprehensive overview of the retail store application 
 │  │  │   └──────────────────────────────────────────────────────────┘     │ │ │
 │  │  │                                                                     │ │ │
 │  │  │   ┌──────────────────────────────────────────────────────────┐     │ │ │
-│  │  │   │   App Gateway Subnet (10.0.2.0/24) - Reserved           │     │ │ │
-│  │  │   │   (For future Application Gateway for Containers)        │     │ │ │
+│  │  │   │   App Gateway Subnet (10.0.2.0/24)                      │     │ │ │
+│  │  │   │   Application Gateway for Containers (Deployed)         │     │ │ │
 │  │  │   └──────────────────────────────────────────────────────────┘     │ │ │
 │  │  │                                                                     │ │ │
 │  │  │   ┌──────────────────────────────────────────────────────────┐     │ │ │
@@ -257,7 +257,7 @@ This document provides a comprehensive overview of the retail store application 
 - **Address Space**: 10.0.0.0/16
 - **Subnets**:
   1. AKS Subnet: 10.0.1.0/24 (supports ~250 IPs)
-  2. App Gateway Subnet: 10.0.2.0/24 (reserved for future)
+  2. App Gateway Subnet: 10.0.2.0/24 (Application Gateway for Containers)
   3. Private Endpoints Subnet: 10.0.3.0/24
 
 **Features**:
@@ -521,36 +521,31 @@ Internet
 
 ### Recommended Upgrades
 
-1. **Application Gateway for Containers** (when budget allows)
-   - Advanced routing capabilities
-   - Web Application Firewall (WAF)
-   - Better Azure integration
-
-2. **Azure Key Vault Integration**
+1. **Azure Key Vault Integration**
    - Secrets stored outside Kubernetes
    - CSI driver for seamless access
    - Secret rotation
 
-3. **Azure AD Pod Identity / Workload Identity**
+2. **Azure AD Pod Identity / Workload Identity**
    - Managed identities for pods
    - No secrets in pods
 
-4. **Azure Policy for AKS**
+3. **Azure Policy for AKS**
    - Governance and compliance
    - Pod security policies
    - Image scanning enforcement
 
-5. **Azure Monitor Application Insights**
+4. **Azure Monitor Application Insights**
    - Distributed tracing
    - Application-level metrics
    - Dependency mapping
 
-6. **Azure DevOps / GitHub Actions for Applications**
+5. **Azure DevOps / GitHub Actions for Applications**
    - CI/CD for containerized apps
    - Automated testing
    - GitOps with Flux or Argo CD
 
-7. **Backup and Disaster Recovery**
+6. **Backup and Disaster Recovery**
    - Velero for AKS backup
    - Geo-redundant SQL backups
    - Multi-region deployment

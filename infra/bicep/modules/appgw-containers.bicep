@@ -87,10 +87,11 @@ resource albAssociation 'Microsoft.ServiceNetworking/trafficControllers/associat
 }
 
 // ============================================================================
-// INSTRUCTIONS FOR FUTURE DEPLOYMENT
+// POST-DEPLOYMENT: KUBERNETES CONTROLLER INSTALLATION
 // ============================================================================
-// After deploying this Bicep module, you need to install the ALB Controller
-// in your AKS cluster. Run these commands:
+// The Application Gateway for Containers infrastructure is deployed via this
+// Bicep module. After the Azure resources are created, install the ALB
+// Controller in your AKS cluster using these commands:
 //
 // 1. Get AKS credentials:
 //    az aks get-credentials --name <aks-cluster-name> --resource-group <rg-name>
